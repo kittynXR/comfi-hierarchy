@@ -12,7 +12,7 @@ namespace Comfi.Hierarchy
         private Vector2 _scrollPos;
         private bool _showIconPreview;
         
-        [MenuItem("Tools/⚙️🎨 kittyn.cat 🐟/ComfiHierarchy/Settings", false, 2000)]
+        [MenuItem("Tools/⚙️🎨 kittyn.cat 🐟/🐟 ComfiHierarchy Settings", false, 2000)]
         public static void ShowWindow()
         {
             var window = GetWindow<ComfiHierarchy>("ComfiHierarchy");
