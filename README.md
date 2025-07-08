@@ -33,8 +33,9 @@ QoL Hierarchy UI for VRChat Creators — Customizable
 
 ### 🔧 Smart Icon System
 - **Automatic Icon Matching** - Wildcard system finds best icon match for components
+- **Enhanced Third-Party Detection** - Automatically discovers custom icons from third-party scripts
 - **Organized Categories** - Icons grouped by Unity, VRChat SDK, Community tools, and Custom
-- **Fallback Support** - Uses Unity's built-in icons when custom icons aren't available
+- **Intelligent Fallback Chain** - Multiple fallback methods ensure icons are found
 - **Dynamic Loading** - Icons loaded on-demand for optimal performance
 
 ### ⚙️ Customization Options
@@ -43,6 +44,7 @@ QoL Hierarchy UI for VRChat Creators — Customizable
 - **Icon Positioning** - Adjust icon X-offset for perfect alignment
 - **Label Width Control** - Customize layer/tag label width
 - **Component Filtering** - Hide specific component types from icon display
+- **Third-Party Icon Detection** - Configure advanced detection methods for performance vs accuracy
 
 ## Usage
 
@@ -71,12 +73,45 @@ QoL Hierarchy UI for VRChat Creators — Customizable
 4. Enable "Debug Mode" for troubleshooting icon loading
 ```
 
+#### Third-Party Icon Detection Settings
+```
+1. Enable "Third-Party Icon Detection" for enhanced script icon support
+2. Toggle "MonoScript Icon Detection" for Unity's native script icons
+3. Enable "AssetDatabase Icon Search" to find icons in script directories
+4. Use "Plugin Icon Detection" for VRChat community tool support
+5. Run "Test Third-Party Icon Detection" to verify detection is working
+```
+
 ### Advanced Features
 
-#### Icon System
-- **Prefix Matching**: "ModularAvatarBone" automatically matches "ModularAvatar" icon
-- **Category Organization**: Icons sorted by Components/, VRCSDK/, VRCCommunity/, Custom/
-- **Performance Optimized**: Icons cached and loaded only when needed
+#### Icon System & Selection Priority
+
+ComfiHierarchy uses an intelligent fallback system to find the best icon for each component:
+
+1. **Custom Icons (Exact Match)** - Direct match from Icons/ folder (e.g., `ModularAvatarBoneProxy.png`)
+2. **Custom Icons (Prefix Match)** - Progressive prefix matching (e.g., `ModularAvatarBone` → `ModularAvatar`)
+3. **Third-Party Script Detection** - Enhanced detection for custom script icons:
+   - **MonoScript Icons** - Uses Unity's native script icon system
+   - **Directory Search** - Looks for icons in the same folder as the script
+   - **Plugin Detection** - Specialized detection for VRChat community tools
+4. **Unity Built-in Icons** - Unity's native component icons
+5. **Unity Type Thumbnails** - Unity's generic type icons
+6. **Default Fallback** - ComfiHierarchy's default icon
+
+#### Third-Party Icon Detection
+
+The enhanced detection system automatically finds custom icons from third-party scripts:
+
+- **MonoScript-based Detection**: Uses Unity's icon system to find script-specific icons
+- **AssetDatabase Search**: Searches for icon files in script directories
+- **Plugin-specific Detection**: Handles VRChat community tools (ModularAvatar, VRCFury, etc.)
+- **Performance Controls**: Configurable settings to balance detection accuracy vs performance
+
+#### Testing & Debugging
+
+- **Test Menu**: `Tools > ⚙️🎨 kittyn.cat 🐟 > 🧪 Test Third-Party Icon Detection`
+- **Debug Mode**: Enable in settings to see detailed icon loading information
+- **Icon Preview**: View all loaded icons and their sources
 
 #### Supported Tools & Components
 - **Unity Built-in**: Transform, Renderer, Collider, Rigidbody, etc.
