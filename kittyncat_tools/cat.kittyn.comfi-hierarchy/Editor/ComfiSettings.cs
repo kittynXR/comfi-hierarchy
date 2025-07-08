@@ -66,6 +66,19 @@ namespace Comfi.Hierarchy
         public List<string> hiddenComponentTypes = new List<string> { "MeshFilter" };
         public bool debugMode = false;
         
+        [Header("Third-Party Script Icons")]
+        [Tooltip("Enable enhanced detection of custom icons from third-party scripts")]
+        public bool enableThirdPartyIconDetection = true;
+        
+        [Tooltip("Enable MonoScript-based icon detection (may impact performance)")]
+        public bool enableMonoScriptIconDetection = true;
+        
+        [Tooltip("Search for icon files in script directories")]
+        public bool enableAssetDatabaseIconSearch = true;
+        
+        [Tooltip("Enable plugin-based icon detection for VRC/community tools")]
+        public bool enablePluginIconDetection = true;
+        
         private static void LoadOrCreateSettings()
         {
             // Try to load from Resources first
