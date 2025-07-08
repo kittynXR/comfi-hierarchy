@@ -2,7 +2,7 @@
 
 QoL Hierarchy UI for VRChat Creators — Customizable
 
-![Unity Editor Screenshot](https://via.placeholder.com/800x400/2D3748/FFFFFF?text=Unity+Hierarchy+Enhancement+Screenshot)
+![ComfiHierarchy Enhancement](./screenshots/comfi-hierarchy-hero-image.png)
 
 ## Installation
 
@@ -86,14 +86,14 @@ QoL Hierarchy UI for VRChat Creators — Customizable
 
 ## Screenshots
 
-![Settings Window](https://via.placeholder.com/600x400/2D3748/FFFFFF?text=ComfiHierarchy+Settings+Window)
+![Settings Window](./screenshots/interface/comfi-hierarchy-settings-window.png)
 *ComfiHierarchy Settings Window with all customization options*
 
-![Icon Preview](https://via.placeholder.com/600x300/2D3748/FFFFFF?text=Icon+Preview+Window)
+![Icon Preview](./screenshots/interface/comfi-hierarchy-icon-preview.png)
 *Icon Preview showing all available component icons*
 
-![Hierarchy Enhancement](https://via.placeholder.com/400x600/2D3748/FFFFFF?text=Enhanced+Hierarchy+View)
-*Unity Hierarchy with ComfiHierarchy enhancements enabled*
+![Before and After Comparison](./screenshots/before-after/comfi-hierarchy-comparison.png)
+*Unity Hierarchy before and after ComfiHierarchy enhancements*
 
 ## Contributing
 
