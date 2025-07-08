@@ -154,7 +154,10 @@ namespace Comfi.Hierarchy
             _defaultIcon = GetIcon(DEFAULT_ICON_NAME) ?? GenerateSolidColorTexture(Color.gray);
             _missingIcon = GetIcon(MISSING_ICON_NAME) ?? _defaultIcon;
             
-            Debug.Log($"[ComfiHierarchy] Loaded {_iconCache.Count} icons from {_iconFolderPath}");
+            if (ComfiSettings.Instance.debugMode)
+            {
+                Debug.Log($"[ComfiHierarchy] Loaded {_iconCache.Count} icons from {_iconFolderPath}");
+            }
             
             if (ComfiSettings.Instance.debugMode)
             {
