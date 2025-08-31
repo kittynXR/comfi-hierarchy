@@ -161,6 +161,32 @@
           ],
           "url": "https://github.com/kittynXR/comfi-hierarchy/releases/download/v1.0.6/cat.kittyn.comfi-hierarchy-1.0.6.zip",
           "samples": []
+        },
+        "1.1.0": {
+          "name": "cat.kittyn.comfi-hierarchy",
+          "displayName": "cátte — Comfi Hierarchy",
+          "version": "1.1.0",
+          "unity": "2019.4",
+          "unityRelease": "31f1",
+          "description": "QoL Hierarchy UI for VRChat Creators — Customizable",
+          "author": {
+            "name": "kittyn",
+            "email": "cat@kittyn.cat",
+            "url": "https://github.com/kittynXR/comfi-hierarchy/releases/download/v1.1.0/cat.kittyn.comfi-hierarchy-1.1.0.zip"
+          },
+          "license": "MIT",
+          "licensesUrl": "https://github.com/kittynXR/comfi-hierarchy/blob/main/LICENSE",
+          "changelogUrl": "https://github.com/kittynXR/comfi-hierarchy/releases",
+          "documentationUrl": "https://github.com/kittynXR/comfi-hierarchy#readme",
+          "dependencies": {},
+          "vpmDependencies": {},
+          "keywords": [
+            "vrchat",
+            "unity",
+            "tool"
+          ],
+          "url": "https://github.com/kittynXR/comfi-hierarchy/releases/download/v1.1.0/cat.kittyn.comfi-hierarchy-1.1.0.zip",
+          "samples": []
         }
       }
     }
