@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +13,11 @@ namespace Comfi.Hierarchy
     public class ComfiSettings : ScriptableObject
     {
         private static ComfiSettings _instance;
+        [NonSerialized] private HashSet<string> _hiddenComponentTypesSet;
+        [NonSerialized] private HashSet<string> _hiddenComponentTypesShortSet;
+
+        private const int LatestVersion = 1;
+        [SerializeField] private int settingsVersion = 0;
         
         public static ComfiSettings Instance
         {
@@ -71,10 +77,10 @@ namespace Comfi.Hierarchy
         public bool enableThirdPartyIconDetection = true;
         
         [Tooltip("Enable MonoScript-based icon detection (may impact performance)")]
-        public bool enableMonoScriptIconDetection = true;
+        public bool enableMonoScriptIconDetection = false;
         
         [Tooltip("Search for icon files in script directories")]
-        public bool enableAssetDatabaseIconSearch = true;
+        public bool enableAssetDatabaseIconSearch = false;
         
         [Tooltip("Enable plugin-based icon detection for VRC/community tools")]
         public bool enablePluginIconDetection = true;
@@ -112,6 +118,9 @@ namespace Comfi.Hierarchy
                 
                 Debug.Log("[ComfiHierarchy] Created new settings file at Assets/Resources/ComfiHierarchySettings.asset");
             }
+
+            // Run migrations and ensure latest defaults
+            _instance.RunMigrationsIfNeeded();
         }
         
         public static void ReloadSettings()
@@ -126,7 +135,9 @@ namespace Comfi.Hierarchy
         public bool IsComponentHidden(Type componentType)
         {
             if (componentType == null) return false;
-            return hiddenComponentTypes.Contains(componentType.Name);
+            EnsureHiddenSets();
+            // Prefer fully-qualified name match; fall back to short name for backward compatibility
+            return _hiddenComponentTypesSet.Contains(componentType.FullName) || _hiddenComponentTypesShortSet.Contains(componentType.Name);
         }
         
         /// <summary>
@@ -136,6 +147,104 @@ namespace Comfi.Hierarchy
         {
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
+            // Rebuild cache if list changed
+            _hiddenComponentTypesSet = null;
+            _hiddenComponentTypesShortSet = null;
+        }
+
+        private void OnValidate()
+        {
+            // Rebuild cache when values change in the inspector
+            _hiddenComponentTypesSet = null;
+            _hiddenComponentTypesShortSet = null;
+        }
+
+        private void EnsureHiddenSets()
+        {
+            if (_hiddenComponentTypesSet == null || _hiddenComponentTypesShortSet == null || _hiddenComponentTypesSet.Count != hiddenComponentTypes.Count)
+            {
+                _hiddenComponentTypesSet = new HashSet<string>(hiddenComponentTypes);
+                _hiddenComponentTypesShortSet = new HashSet<string>();
+                foreach (var s in hiddenComponentTypes)
+                {
+                    if (string.IsNullOrEmpty(s)) continue;
+                    var idx = s.LastIndexOf('.');
+                    var shortName = idx >= 0 && idx < s.Length - 1 ? s.Substring(idx + 1) : s;
+                    _hiddenComponentTypesShortSet.Add(shortName);
+                }
+            }
+        }
+
+        private void RunMigrationsIfNeeded()
+        {
+            if (settingsVersion >= LatestVersion) return;
+
+            bool changed = false;
+
+            // v1: Migrate hidden types to fully qualified names where possible
+            changed |= MigrateHiddenTypesToFqn();
+
+            // Do not override user icon-detection preferences on migration.
+            // Defaults for new settings are applied via field initializers above.
+
+            settingsVersion = LatestVersion;
+            if (changed)
+            {
+                EditorUtility.SetDirty(this);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private bool MigrateHiddenTypesToFqn()
+        {
+            bool changed = false;
+            for (int i = 0; i < hiddenComponentTypes.Count; i++)
+            {
+                var name = hiddenComponentTypes[i];
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                if (name.Contains(".")) continue; // assume already FQN
+
+                string fqn = TryResolveFullName(name);
+                if (!string.IsNullOrEmpty(fqn))
+                {
+                    hiddenComponentTypes[i] = fqn;
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        private static string TryResolveFullName(string shortName)
+        {
+            try
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                Type resolved = null;
+                foreach (var asm in assemblies)
+                {
+                    Type match = null;
+                    try
+                    {
+                        match = asm.GetTypes().FirstOrDefault(t => t.Name == shortName);
+                    }
+                    catch { /* ignore reflection type load issues */ }
+                    if (match == null) continue;
+                    if (resolved == null)
+                    {
+                        resolved = match;
+                    }
+                    else if (resolved != match)
+                    {
+                        // ambiguous, abort migration for this entry
+                        return null;
+                    }
+                }
+                return resolved?.FullName;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

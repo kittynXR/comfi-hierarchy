@@ -17,16 +17,38 @@ namespace Comfi.Hierarchy
         private static readonly HashSet<UnityEngine.Object> _dragToggledObjects = new HashSet<UnityEngine.Object>();
         private static bool _dragToggleState;
         private static readonly int DragToggleControlId = "ComfiHierarchyDragToggle".GetHashCode();
+        private static readonly List<bool> s_HasNextSiblingTemp = new List<bool>(16);
+        private static readonly List<Component> s_ComponentBuffer = new List<Component>(16);
+        private static readonly GUIContent s_TempContent = new GUIContent();
+        private static readonly GUIContent s_TooltipContent = new GUIContent(string.Empty, string.Empty);
+        private static GUIStyle s_LabelStyle;
+        private static MethodInfo s_DisplayObjectContextMenu;
+        private static readonly UnityEngine.Object[] s_ContextMenuSingle = new UnityEngine.Object[1];
+        private static readonly string[] s_LayerNames = new string[32];
         
         static ComfiHierarchyDrawer()
         {
             EditorApplication.hierarchyWindowItemOnGUI -= OnHierarchyGUI;
             EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
+            // Cache non-public context menu method
+            s_DisplayObjectContextMenu = typeof(EditorUtility).GetMethod(
+                "DisplayObjectContextMenu",
+                BindingFlags.Static | BindingFlags.NonPublic,
+                null,
+                new[] { typeof(Rect), typeof(UnityEngine.Object[]), typeof(int) },
+                null);
         }
         
         private static void OnHierarchyGUI(int instanceId, Rect rect)
         {
             if (!Settings.enabled) return;
+
+            // Ensure any drag toggle control is properly released on mouse up
+            if (Event.current.rawType == EventType.MouseUp && GUIUtility.hotControl == DragToggleControlId)
+            {
+                GUIUtility.hotControl = 0;
+                _dragToggledObjects.Clear();
+            }
             
             var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
             if (go == null) return;
@@ -44,7 +66,8 @@ namespace Comfi.Hierarchy
             }
             
             // Calculate base positioning
-            float nameWidth = GUI.skin.label.CalcSize(new GUIContent(go.name)).x + 18;
+            s_TempContent.text = go.name;
+            float nameWidth = GUI.skin.label.CalcSize(s_TempContent).x + 18;
             float currentX = rect.x + nameWidth;
             
             // Draw labels on the left side (after name)
@@ -69,8 +92,10 @@ namespace Comfi.Hierarchy
         {
             if (Event.current.type != EventType.Repaint) return;
             
-            Rect fullRect = new Rect(0, rect.y, rect.width + rect.x, rect.height);
-            Color color = (rect.y / rect.height) % 2 == 0 ? Settings.rowColorEven : Settings.rowColorOdd;
+            float viewWidth = EditorGUIUtility.currentViewWidth;
+            Rect fullRect = new Rect(0, rect.y, viewWidth, rect.height);
+            int rowIndex = Mathf.FloorToInt(rect.y / rect.height);
+            Color color = (rowIndex & 1) == 0 ? Settings.rowColorEven : Settings.rowColorOdd;
             EditorGUI.DrawRect(fullRect, color);
         }
         
@@ -84,12 +109,12 @@ namespace Comfi.Hierarchy
             if (parent == null) return;
             
             // Calculate depth and hierarchy info
-            List<bool> hasNextSibling = new List<bool>();
+            s_HasNextSiblingTemp.Clear();
             Transform current = transform;
             
             while (parent != null)
             {
-                hasNextSibling.Insert(0, current.GetSiblingIndex() < parent.childCount - 1);
+                s_HasNextSiblingTemp.Insert(0, current.GetSiblingIndex() < parent.childCount - 1);
                 current = parent;
                 parent = parent.parent;
             }
@@ -98,12 +123,12 @@ namespace Comfi.Hierarchy
             Handles.color = Settings.treeLineColor;
             float indent = 14f;
             // Calculate proper base position based on hierarchy depth
-            float baseX = rect.x - (hasNextSibling.Count * indent) + indent - 7f;
+            float baseX = rect.x - (s_HasNextSiblingTemp.Count * indent) + indent - 7f;
             
             // Vertical lines for ancestors
-            for (int i = 0; i < hasNextSibling.Count - 1; i++)
+            for (int i = 0; i < s_HasNextSiblingTemp.Count - 1; i++)
             {
-                if (hasNextSibling[i])
+                if (s_HasNextSiblingTemp[i])
                 {
                     float x = baseX + (i * indent);
                     Handles.DrawLine(new Vector3(x, rect.y), new Vector3(x, rect.y + rect.height));
@@ -112,7 +137,7 @@ namespace Comfi.Hierarchy
             
             // Lines for current item
             bool isLastChild = transform.GetSiblingIndex() == transform.parent.childCount - 1;
-            float currentX = baseX + ((hasNextSibling.Count - 1) * indent);
+            float currentX = baseX + ((s_HasNextSiblingTemp.Count - 1) * indent);
             float centerY = rect.y + rect.height / 2f;
             
             // Horizontal line
@@ -144,10 +169,11 @@ namespace Comfi.Hierarchy
             }
             
             // Draw component icons
-            Component[] components = go.GetComponents<Component>();
+            s_ComponentBuffer.Clear();
+            go.GetComponents(s_ComponentBuffer);
             bool firstComponent = true;
             
-            foreach (var component in components)
+            foreach (var component in s_ComponentBuffer)
             {
                 if (component == null)
                 {
@@ -173,13 +199,15 @@ namespace Comfi.Hierarchy
                 
                 // Draw the icon
                 Rect iconRect2 = new Rect(currentX, iconArea.y, iconSize, iconSize);
+                bool toggleable = IsToggleable(component);
                 var icon = IconManager.GetIcon(component.GetType());
-                DrawIcon(iconRect2, component, icon, IsToggleable(component));
+                DrawIcon(iconRect2, component, icon, toggleable);
                 currentX -= iconSize + iconSpacing;
                 
                 // Stop if we run out of space
                 if (currentX < iconArea.x) break;
             }
+            s_ComponentBuffer.Clear();
         }
         
         private static void DrawIcon(Rect rect, UnityEngine.Object target, Texture2D icon, bool isToggleable)
@@ -213,6 +241,7 @@ namespace Comfi.Hierarchy
             
             // Draw icon with tint
             Color tint = isEnabled ? Settings.iconTintActive : Settings.iconTintInactive;
+            var prevColor = GUI.color;
             GUI.color = tint;
             
             // Background
@@ -223,12 +252,13 @@ namespace Comfi.Hierarchy
             
             // Icon
             GUI.DrawTexture(rect, icon);
-            GUI.color = Color.white;
+            GUI.color = prevColor;
             
             // Tooltip
             if (Settings.enableIconTooltips && target != null)
             {
-                GUI.Label(rect, new GUIContent("", target.GetType().Name));
+                s_TooltipContent.tooltip = target.GetType().Name;
+                GUI.Label(rect, s_TooltipContent);
             }
             
             // Cursor
@@ -241,6 +271,13 @@ namespace Comfi.Hierarchy
         private static void HandleIconInteraction(Rect rect, UnityEngine.Object target, ref bool isEnabled)
         {
             Event e = Event.current;
+
+            // Release drag toggle on mouse up anywhere
+            if (e.type == EventType.MouseUp && GUIUtility.hotControl == DragToggleControlId)
+            {
+                GUIUtility.hotControl = 0;
+                _dragToggledObjects.Clear();
+            }
             
             // Left click toggle
             if (e.type == EventType.MouseDown && e.button == 0 && rect.Contains(e.mousePosition))
@@ -302,15 +339,10 @@ namespace Comfi.Hierarchy
         
         private static void ShowComponentContextMenu(UnityEngine.Object target)
         {
-            var method = typeof(EditorUtility).GetMethod("DisplayObjectContextMenu", 
-                BindingFlags.Static | BindingFlags.NonPublic, 
-                null, 
-                new[] { typeof(Rect), typeof(UnityEngine.Object[]), typeof(int) }, 
-                null);
-                
-            if (method != null)
+            if (s_DisplayObjectContextMenu != null)
             {
-                method.Invoke(null, new object[] { new Rect(Event.current.mousePosition, Vector2.zero), new[] { target }, 0 });
+                s_ContextMenuSingle[0] = target;
+                s_DisplayObjectContextMenu.Invoke(null, new object[] { new Rect(Event.current.mousePosition, Vector2.zero), s_ContextMenuSingle, 0 });
             }
         }
         
@@ -322,40 +354,57 @@ namespace Comfi.Hierarchy
             if (Settings.showTagLabel && (Settings.showUntagged || !go.CompareTag("Untagged")))
             {
                 Rect labelRect = new Rect(currentX, originalRect.y, Settings.tagLabelWidth, originalRect.height);
-                DrawLabel(labelRect, go.tag, true);
+                DrawLabel(labelRect, go.tag);
                 currentX += Settings.tagLabelWidth + 4;
             }
             
             // Layer label (after tag)
             if (Settings.showLayerLabel && (Settings.showDefaultLayer || go.layer != 0))
             {
-                string layerName = LayerMask.LayerToName(go.layer);
+                string layerName = GetCachedLayerName(go.layer);
                 Rect labelRect = new Rect(currentX, originalRect.y, Settings.layerLabelWidth, originalRect.height);
-                DrawLabel(labelRect, layerName, false);
+                DrawLabel(labelRect, layerName);
                 currentX += Settings.layerLabelWidth + 4;
             }
             
             return currentX;
         }
         
-        private static void DrawLabel(Rect rect, string text, bool isTag)
+        private static void DrawLabel(Rect rect, string text)
         {
-            var style = new GUIStyle(EditorStyles.label);
-            style.fontSize = 9;
-            style.alignment = TextAnchor.MiddleLeft;
-            style.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
-            style.padding = new RectOffset(4, 4, 0, 0);
+            if (s_LabelStyle == null)
+            {
+                s_LabelStyle = new GUIStyle(EditorStyles.label)
+                {
+                    fontSize = 9,
+                    alignment = TextAnchor.MiddleLeft,
+                    padding = new RectOffset(4, 4, 0, 0)
+                };
+                s_LabelStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+            }
             
             // Optional: Add a subtle background
             var bgColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
             EditorGUI.DrawRect(rect, bgColor);
             
-            GUI.Label(rect, text, style);
+            GUI.Label(rect, text, s_LabelStyle);
         }
         
         private static bool IsToggleable(Component component)
         {
             return component is Behaviour || component is Renderer || component is Collider;
+        }
+
+        private static string GetCachedLayerName(int layer)
+        {
+            if (layer < 0 || layer >= s_LayerNames.Length) return string.Empty;
+            var name = s_LayerNames[layer];
+            if (string.IsNullOrEmpty(name))
+            {
+                name = LayerMask.LayerToName(layer);
+                s_LayerNames[layer] = name;
+            }
+            return name;
         }
     }
 }
