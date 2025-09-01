@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using Kittyn.Tools;
 
 namespace Comfi.Hierarchy
 {
@@ -13,10 +14,21 @@ namespace Comfi.Hierarchy
         private bool _showIconPreview;
         
         [MenuItem("Tools/⚙️🎨 kittyn.cat 🐟/🐟 ComfiHierarchy Settings", false, 2000)]
+        public static void ShowWindowMenu()
+        {
+            ShowWindow();
+        }
+        
         public static void ShowWindow()
         {
-            var window = GetWindow<ComfiHierarchy>("ComfiHierarchy");
+            var window = GetWindow<ComfiHierarchy>(KittynLocalization.Get("comfi_hierarchy.window_title"));
             window.minSize = new Vector2(350, 400);
+        }
+        
+        // Legacy menu item for compatibility
+        private static void ShowWindowLegacy()
+        {
+            ShowWindow();
         }
         
         private void OnEnable()
@@ -28,7 +40,7 @@ namespace Comfi.Hierarchy
         {
             if (_settings == null)
             {
-                EditorGUILayout.HelpBox("Settings not found. Creating new settings...", MessageType.Warning);
+                EditorGUILayout.HelpBox(KittynLocalization.Get("comfi_hierarchy.settings_not_found"), MessageType.Warning);
                 _settings = ComfiSettings.Instance;
                 return;
             }
@@ -39,7 +51,7 @@ namespace Comfi.Hierarchy
             
             // Header
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("ComfiHierarchy Settings", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("comfi_hierarchy.settings_title"), EditorStyles.boldLabel);
             EditorGUILayout.Space();
             
             // General Settings
@@ -76,57 +88,57 @@ namespace Comfi.Hierarchy
         
         private void DrawGeneralSettings()
         {
-            EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("common.general"), EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             {
-                _settings.enabled = EditorGUILayout.Toggle("Enable ComfiHierarchy", _settings.enabled);
+                _settings.enabled = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.enable_comfi"), _settings.enabled);
                 
                 using (new EditorGUI.DisabledScope(!_settings.enabled))
                 {
-                    _settings.enableComponentToggle = EditorGUILayout.Toggle("Component Toggle", _settings.enableComponentToggle);
-                    _settings.enableDragToggle = EditorGUILayout.Toggle("Drag Toggle", _settings.enableDragToggle);
-                    _settings.enableContextMenus = EditorGUILayout.Toggle("Context Menus", _settings.enableContextMenus);
+                    _settings.enableComponentToggle = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.component_toggle"), _settings.enableComponentToggle);
+                    _settings.enableDragToggle = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.drag_toggle"), _settings.enableDragToggle);
+                    _settings.enableContextMenus = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.context_menus"), _settings.enableContextMenus);
                 }
             }
         }
         
         private void DrawIconSettings()
         {
-            EditorGUILayout.LabelField("Icons", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("comfi_hierarchy.icons"), EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             using (new EditorGUI.DisabledScope(!_settings.enabled))
             {
-                _settings.showIcons = EditorGUILayout.Toggle("Show Icons", _settings.showIcons);
+                _settings.showIcons = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.show_icons"), _settings.showIcons);
                 
                 using (new EditorGUI.DisabledScope(!_settings.showIcons))
                 {
-                    _settings.showGameObjectIcon = EditorGUILayout.Toggle("GameObject Icon", _settings.showGameObjectIcon);
-                    _settings.showTransformIcon = EditorGUILayout.Toggle("Transform Icon", _settings.showTransformIcon);
-                    _settings.showNonToggleableIcons = EditorGUILayout.Toggle("Non-Toggleable Icons", _settings.showNonToggleableIcons);
-                    _settings.enableIconTooltips = EditorGUILayout.Toggle("Icon Tooltips", _settings.enableIconTooltips);
-                    _settings.linkCursorOnHover = EditorGUILayout.Toggle("Link Cursor", _settings.linkCursorOnHover);
-                    _settings.iconXOffset = EditorGUILayout.Slider("Icon X Offset", _settings.iconXOffset, -50f, 50f);
+                    _settings.showGameObjectIcon = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.gameobject_icon"), _settings.showGameObjectIcon);
+                    _settings.showTransformIcon = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.transform_icon"), _settings.showTransformIcon);
+                    _settings.showNonToggleableIcons = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.non_toggleable_icons"), _settings.showNonToggleableIcons);
+                    _settings.enableIconTooltips = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.icon_tooltips"), _settings.enableIconTooltips);
+                    _settings.linkCursorOnHover = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.link_cursor"), _settings.linkCursorOnHover);
+                    _settings.iconXOffset = EditorGUILayout.Slider(KittynLocalization.Get("comfi_hierarchy.icon_x_offset"), _settings.iconXOffset, -50f, 50f);
                 }
             }
         }
         
         private void DrawVisualFeatures()
         {
-            EditorGUILayout.LabelField("Visual Features", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("comfi_hierarchy.visual_features"), EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             using (new EditorGUI.DisabledScope(!_settings.enabled))
             {
-                _settings.showTreeLines = EditorGUILayout.Toggle("Tree Guide Lines", _settings.showTreeLines);
-                _settings.enableRowColoring = EditorGUILayout.Toggle("Row Coloring", _settings.enableRowColoring);
-                _settings.showLayerLabel = EditorGUILayout.Toggle("Layer Labels", _settings.showLayerLabel);
-                _settings.showTagLabel = EditorGUILayout.Toggle("Tag Labels", _settings.showTagLabel);
+                _settings.showTreeLines = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.tree_guide_lines"), _settings.showTreeLines);
+                _settings.enableRowColoring = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.row_coloring"), _settings.enableRowColoring);
+                _settings.showLayerLabel = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.layer_labels"), _settings.showLayerLabel);
+                _settings.showTagLabel = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.tag_labels"), _settings.showTagLabel);
                 
                 if (_settings.showLayerLabel)
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        _settings.layerLabelWidth = EditorGUILayout.Slider("Layer Label Width", _settings.layerLabelWidth, 50f, 150f);
-                        _settings.showDefaultLayer = EditorGUILayout.Toggle("Show Default Layer", _settings.showDefaultLayer);
+                        _settings.layerLabelWidth = EditorGUILayout.Slider(KittynLocalization.Get("comfi_hierarchy.layer_label_width"), _settings.layerLabelWidth, 50f, 150f);
+                        _settings.showDefaultLayer = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.show_default_layer"), _settings.showDefaultLayer);
                     }
                 }
                 
@@ -134,8 +146,8 @@ namespace Comfi.Hierarchy
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        _settings.tagLabelWidth = EditorGUILayout.Slider("Tag Label Width", _settings.tagLabelWidth, 50f, 150f);
-                        _settings.showUntagged = EditorGUILayout.Toggle("Show Untagged", _settings.showUntagged);
+                        _settings.tagLabelWidth = EditorGUILayout.Slider(KittynLocalization.Get("comfi_hierarchy.tag_label_width"), _settings.tagLabelWidth, 50f, 150f);
+                        _settings.showUntagged = EditorGUILayout.Toggle(KittynLocalization.Get("comfi_hierarchy.show_untagged"), _settings.showUntagged);
                     }
                 }
             }
@@ -143,38 +155,38 @@ namespace Comfi.Hierarchy
         
         private void DrawColorSettings()
         {
-            EditorGUILayout.LabelField("Colors", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("common.colors"), EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             using (new EditorGUI.DisabledScope(!_settings.enabled))
             {
-                _settings.iconTintActive = EditorGUILayout.ColorField("Active Icon Tint", _settings.iconTintActive);
-                _settings.iconTintInactive = EditorGUILayout.ColorField("Inactive Icon Tint", _settings.iconTintInactive);
-                _settings.iconBackgroundColor = EditorGUILayout.ColorField("Icon Background", _settings.iconBackgroundColor);
+                _settings.iconTintActive = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.active_icon_tint"), _settings.iconTintActive);
+                _settings.iconTintInactive = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.inactive_icon_tint"), _settings.iconTintInactive);
+                _settings.iconBackgroundColor = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.icon_background"), _settings.iconBackgroundColor);
                 
                 if (_settings.showTreeLines)
-                    _settings.treeLineColor = EditorGUILayout.ColorField("Tree Line Color", _settings.treeLineColor);
+                    _settings.treeLineColor = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.tree_line_color"), _settings.treeLineColor);
                 
                 if (_settings.enableRowColoring)
                 {
-                    _settings.rowColorOdd = EditorGUILayout.ColorField("Row Color Odd", _settings.rowColorOdd);
-                    _settings.rowColorEven = EditorGUILayout.ColorField("Row Color Even", _settings.rowColorEven);
+                    _settings.rowColorOdd = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.row_color_odd"), _settings.rowColorOdd);
+                    _settings.rowColorEven = EditorGUILayout.ColorField(KittynLocalization.Get("comfi_hierarchy.row_color_even"), _settings.rowColorEven);
                 }
             }
         }
         
         private void DrawAdvancedSettings()
         {
-            EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(KittynLocalization.Get("common.advanced"), EditorStyles.boldLabel);
             using (new EditorGUI.IndentLevelScope())
             {
                 // Hidden component types
-                EditorGUILayout.LabelField("Hidden Component Types", EditorStyles.miniBoldLabel);
+                EditorGUILayout.LabelField(KittynLocalization.Get("comfi_hierarchy.hidden_component_types"), EditorStyles.miniBoldLabel);
                 for (int i = 0; i < _settings.hiddenComponentTypes.Count; i++)
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         _settings.hiddenComponentTypes[i] = EditorGUILayout.TextField(_settings.hiddenComponentTypes[i]);
-                        if (GUILayout.Button("X", GUILayout.Width(20)))
+                        if (GUILayout.Button(KittynLocalization.Get("common.delete"), GUILayout.Width(20)))
                         {
                             _settings.hiddenComponentTypes.RemoveAt(i);
                             i--;
@@ -184,14 +196,14 @@ namespace Comfi.Hierarchy
                 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("Add Hidden Type"))
+                    if (GUILayout.Button(KittynLocalization.Get("comfi_hierarchy.add_hidden_type")))
                     {
                         _settings.hiddenComponentTypes.Add("");
                     }
                 }
                 
                 EditorGUILayout.Space();
-                _settings.debugMode = EditorGUILayout.Toggle("Debug Mode", _settings.debugMode);
+                _settings.debugMode = EditorGUILayout.Toggle(KittynLocalization.Get("common.debug_mode"), _settings.debugMode);
             }
         }
         
@@ -199,27 +211,31 @@ namespace Comfi.Hierarchy
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Refresh Icons"))
+                if (GUILayout.Button(KittynLocalization.Get("common.refresh")))
                 {
                     IconManager.RefreshIcons();
                     EditorApplication.RepaintHierarchyWindow();
                 }
                 
-                if (GUILayout.Button("Reset Settings"))
+                if (GUILayout.Button(KittynLocalization.Get("common.reset")))
                 {
-                    if (EditorUtility.DisplayDialog("Reset Settings", 
-                        "Are you sure you want to reset all settings to default?", 
-                        "Reset", "Cancel"))
+                    if (EditorUtility.DisplayDialog(KittynLocalization.Get("common.reset"), 
+                        KittynLocalization.Get("messages.confirm_reset"), 
+                        KittynLocalization.Get("common.reset"), KittynLocalization.Get("common.cancel")))
                     {
                         ResetSettings();
                     }
                 }
                 
-                if (GUILayout.Button("Icon Preview"))
+                if (GUILayout.Button(KittynLocalization.Get("common.preview")))
                 {
                     _showIconPreview = !_showIconPreview;
                 }
             }
+            
+            // Language selector
+            EditorGUILayout.Space();
+            KittynLanguageSelector.DrawLanguageSelector();
             
             if (_showIconPreview)
             {

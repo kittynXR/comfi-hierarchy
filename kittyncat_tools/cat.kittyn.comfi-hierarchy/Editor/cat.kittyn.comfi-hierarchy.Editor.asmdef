@@ -15,5 +15,9 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
+    "optionalUnityReferences": [],
+    "defineSymbols": [
+        "KITTYN_COMFI_HIERARCHY"
+    ],
     "noEngineReferences": false
 }
