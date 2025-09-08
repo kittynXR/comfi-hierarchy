@@ -91,6 +91,17 @@ namespace Kittyn.Tools
             return KittynLocalization.CurrentLanguage != "ca";
         }
         
+        [MenuItem("Tools/⚙️🎨 kittyn.cat 🐟/🌐 Language/🔧 Reset Language to English", false, MENU_PRIORITY + 10)]
+        private static void ResetLanguageToDefault()
+        {
+            Debug.Log("[ComfiHierarchy] Force resetting language to English...");
+            EditorPrefs.DeleteKey("KittynTools_Language");
+            EditorPrefs.DeleteKey("KittynTools_Language_Timestamp");
+            KittynLocalization.RefreshLanguages();
+            SetLanguage("en", "English");
+            Debug.Log("[ComfiHierarchy] Language reset complete. Language is now: " + KittynLocalization.CurrentLanguage);
+        }
+        
         private static void SetLanguage(string languageCode, string languageName)
         {
             Debug.Log($"[KittynLanguageSelector] Attempting to set language to: {languageCode} ({languageName})");

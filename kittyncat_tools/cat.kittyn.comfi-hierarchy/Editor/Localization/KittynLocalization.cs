@@ -53,6 +53,8 @@ namespace Kittyn.Tools
             }
             set
             {
+                if (!_initialized) Initialize();
+                
                 if (value != _currentLanguage && _languages != null && _languages.ContainsKey(value))
                 {
                     _currentLanguage = value;
@@ -80,7 +82,6 @@ namespace Kittyn.Tools
         
         private static void Initialize()
         {
-            _initialized = true;
             _languages = new Dictionary<string, Dictionary<string, object>>();
             
             LoadAllLanguages();
@@ -88,10 +89,15 @@ namespace Kittyn.Tools
             _currentLanguage = EditorPrefs.GetString(PREF_KEY_LANGUAGE, DEFAULT_LANGUAGE);
             if (!_languages.ContainsKey(_currentLanguage))
             {
+                Debug.LogWarning($"[ComfiHierarchy] Language '{_currentLanguage}' not found in loaded languages. Resetting to default '{DEFAULT_LANGUAGE}'.");
                 _currentLanguage = DEFAULT_LANGUAGE;
+                EditorPrefs.SetString(PREF_KEY_LANGUAGE, DEFAULT_LANGUAGE);
             }
             
             _lastLanguageChangeTime = EditorPrefs.GetFloat(PREF_KEY_LANGUAGE_TIMESTAMP, 0f);
+            
+            // Set initialized flag after everything is loaded and validated
+            _initialized = true;
         }
         
         private static void LoadAllLanguages()
