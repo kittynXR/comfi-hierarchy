@@ -16,6 +16,7 @@ namespace Comfi.Hierarchy
         
         private static readonly HashSet<UnityEngine.Object> _dragToggledObjects = new HashSet<UnityEngine.Object>();
         private static bool _dragToggleState;
+        private static bool _dragToggleGameObjectOnly;
         private static readonly int DragToggleControlId = "ComfiHierarchyDragToggle".GetHashCode();
         private static readonly List<bool> s_HasNextSiblingTemp = new List<bool>(16);
         private static readonly List<Component> s_ComponentBuffer = new List<Component>(16);
@@ -48,6 +49,7 @@ namespace Comfi.Hierarchy
             {
                 GUIUtility.hotControl = 0;
                 _dragToggledObjects.Clear();
+                _dragToggleGameObjectOnly = false;
             }
             
             var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
@@ -277,6 +279,7 @@ namespace Comfi.Hierarchy
             {
                 GUIUtility.hotControl = 0;
                 _dragToggledObjects.Clear();
+                _dragToggleGameObjectOnly = false;
             }
             
             // Left click toggle
@@ -285,6 +288,7 @@ namespace Comfi.Hierarchy
                 e.Use();
                 _dragToggleState = !isEnabled;
                 _dragToggledObjects.Clear();
+                _dragToggleGameObjectOnly = target is GameObject;
                 
                 if (Settings.enableDragToggle)
                 {
@@ -301,6 +305,10 @@ namespace Comfi.Hierarchy
                 rect.Contains(e.mousePosition) &&
                 !_dragToggledObjects.Contains(target))
             {
+                if (_dragToggleGameObjectOnly && !(target is GameObject))
+                {
+                    return;
+                }
                 ToggleComponent(target, _dragToggleState);
                 _dragToggledObjects.Add(target);
             }
